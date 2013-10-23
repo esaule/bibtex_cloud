@@ -8,7 +8,8 @@ class CairoTagCloud : public CairoGraphicController {
   std::vector<std::pair<std::string, int > > count;
   
   //  float fontsize (int occurence) {return occurence;}
-  float fontsize (int occurence) {return 3*sqrt((float)occurence)+5;}
+  //  float fontsize (int occurence) {return 3*sqrt((float)occurence)+5;}
+  float fontsize (int occurence) {return (float)occurence+5;}
 
   struct placement {
     float x, y, w, h;
@@ -42,6 +43,12 @@ class CairoTagCloud : public CairoGraphicController {
     return true;
   }
   
+  bool within(const placement& p1, float x, float y) {
+    if (x< p1.x || x > p1.x+p1.w) return false;
+    if (y< p1.y || y > p1.y+p1.h) return false;
+    return true;
+  }
+
   void compute_placement() {
     if (!refresh_placement) return;
 
@@ -86,27 +93,48 @@ class CairoTagCloud : public CairoGraphicController {
   bool refresh_placement;
   cairo_pattern_t * bgcolor;
   cairo_pattern_t * fgcolor;
+  cairo_pattern_t * fgcolor_mp;
 
+  std::map<std::string, bool> marked_plus;
 public:
   
-  CairoTagCloud (  std::vector<std::pair<std::string, int > >& c )
-    :count(c) {
+  void setTagCloud (std::vector<std::pair<std::string, int > >& c) {
+
     refresh_placement = true;
+    count = c;
+    marked_plus.clear();
+    for (auto ent : count) {
+      marked_plus[ent.first] = false;
+    }
+  }
+  
+
+  CairoTagCloud (  std::vector<std::pair<std::string, int > >& c ) {
+    setTagCloud (c);
 
     bgcolor = cairo_pattern_create_rgb(1,1,1);
     fgcolor = cairo_pattern_create_rgb(0,0,0);
+    fgcolor_mp = cairo_pattern_create_rgb(1,0,0);
   }
 
   virtual ~CairoTagCloud() {   
     cairo_pattern_destroy(bgcolor);
     cairo_pattern_destroy(fgcolor);
+    cairo_pattern_destroy(fgcolor_mp);
   }
 
   virtual void setSizeX(int sx){if (sx != getSizeX()) refresh_placement = true; CairoGraphicController::setSizeX(sx);}
   virtual void setSizeY(int sy){if (sy != getSizeY()) refresh_placement = true; CairoGraphicController::setSizeY(sy); }
 
   
-  virtual void clickat(int x, int y){}
+  virtual void clickat(int x, int y) {
+    for (auto ent : actual_placement) {
+      if (within(ent.second, x, y)) {
+	marked_plus[ent.first] = ! (marked_plus[ent.first]);
+	break;
+      }
+    }
+  }
   
   virtual void clickmove(int x, int y){}
 
@@ -129,6 +157,12 @@ public:
 
       cairo_move_to (cr, pl.second.x, pl.second.y + pl.second.h);
 
+      if (marked_plus[pl.first]) {
+	cairo_set_source(cr, fgcolor_mp);
+      }
+      else {
+	cairo_set_source(cr, fgcolor);
+      }
       show_text (cr, pl.first, pl.second.h);
     }
   }
