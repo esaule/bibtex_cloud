@@ -1,3 +1,4 @@
+#define GTK
 #include <iostream>
 #include <map>
 #include <string>
@@ -5,6 +6,27 @@
 #include "parse.hpp"
 
 #include "util.hpp"
+
+#include <gtk/gtk.h>
+
+#include "cairo.h"
+
+
+GdkImage *im;
+GtkWidget *imWind;
+
+
+#include "CairoTagCloud.hpp"
+
+bool quit;
+
+void
+destroy (void)
+{
+  quit = true;
+  gtk_main_quit ();
+}
+
 
 int main (int argc, char* argv[]) {
   if (argc!=2) {
@@ -54,7 +76,76 @@ int main (int argc, char* argv[]) {
     std::cout<<it->first<<" "<<it->second<<std::endl;
   }
 
+
+
+  //============================================================
+  //GTK stuff
+
+  gtk_init (&argc, &argv);
+  GtkWidget *window;
+
+  window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+
+  g_set_application_name("cairo gtk");
+
+  gtk_signal_connect (GTK_OBJECT (window), "destroy",
+                      GTK_SIGNAL_FUNC (destroy), NULL);
+  gtk_container_border_width (GTK_CONTAINER (window), 10);
+
   
+  gtk_widget_add_events (window, GDK_BUTTON_RELEASE_MASK);
+  gtk_widget_add_events (window, GDK_POINTER_MOTION_MASK);
+
+  CairoTagCloud g (count);
+  
+    imWind = gtk_label_new("You should not see this message!");
+
+  g_signal_connect (G_OBJECT (imWind), "expose_event",
+                    G_CALLBACK (CairoGraphicController::expose), &g);
+
+
+  g_signal_connect (G_OBJECT (window), "key-press-event",
+                    G_CALLBACK (CairoGraphicController::key_press), &g);
+  
+  g_signal_connect (G_OBJECT (window), "button-press-event",
+                    G_CALLBACK (CairoGraphicController::button_press), &g);
+  
+  g_signal_connect (G_OBJECT (window), "button-release-event",
+                    G_CALLBACK (CairoGraphicController::button_release), &g);
+
+  g_signal_connect (G_OBJECT (window), "motion-notify-event",
+                    G_CALLBACK (CairoGraphicController::motion_notify), &g);
+  
+  
+  gtk_widget_add_events(window, GDK_VISIBILITY_NOTIFY_MASK);
+
+  g_signal_connect (G_OBJECT (window), "visibility-notify-event",
+                    G_CALLBACK (CairoGraphicController::visibility_notify), &g);
+
+  GTK_WIDGET_SET_FLAGS(window, GTK_CAN_FOCUS);
+  gtk_widget_add_events (window, GDK_KEY_PRESS_MASK);
+  gtk_widget_add_events (window, GDK_BUTTON_PRESS_MASK);
+
+
+
+  gtk_widget_show (imWind);
+
+  gtk_container_add(GTK_CONTAINER(window), imWind);
+  gtk_widget_show (window);
+
+  //  gtk_main ();
+  quit = false;
+  while (!quit)
+    {
+      gtk_main_iteration_do(false);
+
+      int microsecondsinasecond = 1000*1000;
+      usleep(microsecondsinasecond/100);
+      //usleep(10000);
+      gtk_widget_queue_draw (imWind);
+    }
+
+
 
   return 0;
 }
