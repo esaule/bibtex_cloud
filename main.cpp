@@ -16,7 +16,8 @@ GdkImage *im;
 GtkWidget *imWind;
 
 
-#include "CairoTagCloud.hpp"
+//#include "CairoTagCloud.hpp"
+#include "CairoBibtexCloud.hpp"
 
 bool quit;
 
@@ -96,7 +97,8 @@ int main (int argc, char* argv[]) {
   gtk_widget_add_events (window, GDK_BUTTON_RELEASE_MASK);
   gtk_widget_add_events (window, GDK_POINTER_MOTION_MASK);
 
-  CairoTagCloud g (count);
+  //  CairoTagCloud g (count);
+  CairoBibtexCloud g (count);
   
     imWind = gtk_label_new("You should not see this message!");
 

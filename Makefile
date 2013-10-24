@@ -23,12 +23,23 @@ depend:
 # DO NOT DELETE
 
 log.o: log.hpp
-main.o: parse.hpp util.hpp CairoTagCloud.hpp cairo_graphic_controller.hpp
-main.o: serializable.hpp exception.hpp util/stacktrace.hpp log.hpp
+main.o: parse.hpp util.hpp CairoBibtexCloud.hpp log.hpp
+main.o: cairo_graphic_controller.hpp serializable.hpp exception.hpp
+main.o: util/stacktrace.hpp gui_interface.hpp gui_option_chooser.hpp
+main.o: CairoTagCloud.hpp GuiLayout.hpp util/smart_ptr.hpp
 parse.o: util.hpp
+CairoBibtexCloud.o: log.hpp cairo_graphic_controller.hpp serializable.hpp
+CairoBibtexCloud.o: exception.hpp util/stacktrace.hpp gui_interface.hpp
+CairoBibtexCloud.o: gui_option_chooser.hpp CairoTagCloud.hpp GuiLayout.hpp
+CairoBibtexCloud.o: util/smart_ptr.hpp
 CairoTagCloud.o: cairo_graphic_controller.hpp serializable.hpp exception.hpp
 CairoTagCloud.o: util/stacktrace.hpp log.hpp
+GuiLayout.o: cairo_graphic_controller.hpp serializable.hpp exception.hpp
+GuiLayout.o: util/stacktrace.hpp log.hpp util/smart_ptr.hpp
 cairo_graphic_controller.o: serializable.hpp exception.hpp
 cairo_graphic_controller.o: util/stacktrace.hpp log.hpp
 exception.o: util/stacktrace.hpp log.hpp
+gui_option_chooser.o: cairo_graphic_controller.hpp serializable.hpp
+gui_option_chooser.o: exception.hpp util/stacktrace.hpp log.hpp
+gui_option_chooser.o: gui_interface.hpp
 serializable.o: exception.hpp util/stacktrace.hpp log.hpp
