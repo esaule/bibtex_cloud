@@ -3,21 +3,27 @@
 #include <iostream>
 #include <vector>
 
-#include <boost/lexical_cast.hpp>
+//#include <boost/lexical_cast.hpp>
 #include <boost/optional.hpp>
 
 #include "bibtexreader.hpp"
+#include "bibtexwriter.hpp"
 
 #include "util.hpp"
 
+using bibtex::BibTeXEntry;
+typedef std::vector<std::string> ValueVector;
+typedef std::pair<std::string, ValueVector> KeyValue;
+std::vector<BibTeXEntry> entries;
+
+  std::set<std::string> acceptable;
+
+
 int extract_key_keywords(std::string filename, std::map<std::string, std::vector<std::string> > & out) {
-  using bibtex::BibTeXEntry;
-  typedef std::vector<std::string> ValueVector;
-  typedef std::pair<std::string, ValueVector> KeyValue;
 
   bool verbose = false;
 
-  std::set<std::string> acceptable;
+  acceptable.clear();
   acceptable.insert("article");
   acceptable.insert("book");
   acceptable.insert("inbook");
@@ -36,16 +42,15 @@ int extract_key_keywords(std::string filename, std::map<std::string, std::vector
     return EXIT_FAILURE;
   }
 
-  std::vector<BibTeXEntry> e;
-  bool result = read(in, e);
+  bool result = read(in, entries);
 
   if (verbose) {
-    std::cout << "found " << e.size() << " entries\n"; 
+    std::cout << "found " << entries.size() << " entries\n"; 
   }
   
   std::set<std::string> existing_tags;
 
-  for (BibTeXEntry b : e) {
+  for (BibTeXEntry b : entries) {
     std::string t = b.tag;
     t = str_tolower(t);
     existing_tags.insert(t);
@@ -60,7 +65,7 @@ int extract_key_keywords(std::string filename, std::map<std::string, std::vector
     std::cout<<"===================================="<<std::endl;
   }
 
-  for (BibTeXEntry b : e) {
+  for (BibTeXEntry b : entries) {
     std::string t = b.tag;
     std::transform (t.begin(), t.end(), t.begin(), (int(*)(int))std::tolower);
     if (std::find(acceptable.begin(), acceptable.end(), t) != acceptable.end()) {
@@ -110,4 +115,24 @@ int extract_key_keywords(std::string filename, std::map<std::string, std::vector
   }
   
   return 0;
+}
+
+///use the database read from the previous call to parse.
+void print_to_stdout (const std::set<std::string>& keys) {
+  for (auto ent : entries) {
+    
+    std::string t = ent.tag;
+    std::transform (t.begin(), t.end(), t.begin(), (int(*)(int))std::tolower);
+    if (std::find(acceptable.begin(), acceptable.end(), t) != acceptable.end()) {
+      if (std::find (keys.begin(), keys.end(), ent.key.get()) != keys.end()) {
+	//      bibtex::write(std::cout, ent);
+	//std::cout<<ent;
+	std::cout<<"@"<<ent.tag<<"{"<<ent.key.get();
+	for (auto f : ent.fields) {
+	  std::cout<<",\n    "<<f.first<<" = \""<<f.second[0]<<"\"";
+	}
+	std::cout<<"\n}\n"<<std::flush;
+      }
+    }
+  }
 }

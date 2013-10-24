@@ -87,6 +87,7 @@ public:
     options->addOption("ZoomIn");
     options->addOption("ZoomOut");
     options->addOption("Ignore");
+    options->addOption("Print");
 
     gl.addObject(options);
     gl.placeObject(options, 10, 10);
@@ -153,6 +154,13 @@ public:
       //update display
       generate_count();
       ctc->setTagCloud(count);
+    }
+    if (verb.compare("Print") == 0) {
+      std::set<std::string> output;
+      for (auto ent : key_to_keywords) {
+	output.insert(ent.first);
+      }
+      print_to_stdout(output);
     }
   }
 
