@@ -90,7 +90,7 @@ public:
 
     gl.addObject(options);
     gl.placeObject(options, 10, 10);
-    gl.sizeObject(options, 10, 40);
+    gl.sizeObject(options, 5, 45);
     gl.showObject(options, true);
     gl.allowInput(options, true);
   }
@@ -128,12 +128,14 @@ public:
       ctc->setTagCloud(count);
 
       //printout list
+      std::cout<<"==================================================="<<std::endl;
       for (auto ent : key_to_keywords) {
 	std::cout<<ent.first<<"=>"; 
 	for (std::string &s : ent.second)
 	  std::cout<<s<<"|";
 	std::cout<<std::endl;
       }
+      std::cout<<"==================================================="<<std::endl;
     }
     if (verb.compare("ZoomIn") == 0) {
       ctc->scaleUp();
@@ -173,8 +175,8 @@ public:
     gl.placeObjectY(ctc, 50);
     gl.sizeObjectY(ctc, sy-50);
 
-    gl.placeObjectY(options, 10);
-    gl.sizeObjectY(options, 40);
+    gl.placeObjectY(options, 5);
+    gl.sizeObjectY(options, 45);
   }
 
 
