@@ -3,7 +3,7 @@ LD=g++
 BIBTEXSPIRIT_INC = -I $(HOME)/prgs/bibtex-spirit/include
 CXXFLAGS = $(BIBTEXSPIRIT_INC)
 
-CXXFLAGS += -std=c++11
+CXXFLAGS += -std=c++11 -g -O0
 
 
 GTK_INCLUDE = `pkg-config --cflags gtk+-2.0` `pkg-config --cflags cairo`
@@ -20,6 +20,9 @@ main: $(OBJS)
 
 depend: 
 	makedepend -f Makefile *.cpp *.hpp -Y util/*.cpp util/*.hpp
+
+clean:
+	rm $(OBJS)
 # DO NOT DELETE
 
 log.o: log.hpp

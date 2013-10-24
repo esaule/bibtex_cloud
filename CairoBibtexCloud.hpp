@@ -34,11 +34,43 @@ private:
   util::smart_ptr<CairoTagCloud> ctc;
 
   util::smart_ptr<GuiOptionChooser> options;
+
+  std::map<std::string, std::vector<std::string> > key_to_keywords;
+  std::vector<std::pair<std::string, int > > count;
+
+  std::set<std::string> ignore_list;
+
+  void generate_count() {
+    count.clear();
+    //count occurences
+    std::map<std::string, int> count_m;
+    
+    for (auto it = key_to_keywords.begin(); it != key_to_keywords.end(); ++it) {
+      for (std::string s : it->second) {
+	count_m[s] ++;
+      }
+    }
+    
+    for (auto it = count_m.begin(); it != count_m.end(); ++it) {
+      if (std::find (ignore_list.begin(), ignore_list.end(), it->first) == ignore_list.end())
+	count.push_back(std::pair<std::string, int > (it->first, it->second));
+    }
+    
+    std::sort (count.begin(), count.end(), [] (const std::pair<std::string, int> & a, const std::pair<std::string, int> & b) -> bool {return a.second>b.second;} );
+    
+    //print occurences
+    for (auto it = count.begin(); it != count.end(); ++it) {
+      std::cout<<it->first<<" "<<it->second<<std::endl;
+    }
+  }
+
 public:
   //============ Constructors  =================
-  CairoBibtexCloud(std::vector<std::pair<std::string, int > >& c) {
+  CairoBibtexCloud(const std::map<std::string, std::vector<std::string> > & k_t_k)
+    :key_to_keywords(k_t_k) {
+    generate_count();
 
-    ctc = new CairoTagCloud(c);
+    ctc = new CairoTagCloud(count);
     gl.addObject(ctc);
     gl.placeObject(ctc, 10, 50);
     gl.sizeObject(ctc, 10, 50);
@@ -47,17 +79,20 @@ public:
 
     options = new GuiOptionChooser(*this);
     options->setOptionHeight(1);
-    options->setOptionWidth(.3);
+    options->setOptionWidth(.15);
+    options->setInterWidth(.20);
+    options->setOptionWidthInternal(.02);
     options->setFontSize(.8);
-    options->addOption("filter");
-
+    options->addOption("Filter");
+    options->addOption("ZoomIn");
+    options->addOption("ZoomOut");
+    options->addOption("Ignore");
 
     gl.addObject(options);
     gl.placeObject(options, 10, 10);
     gl.sizeObject(options, 10, 40);
     gl.showObject(options, true);
     gl.allowInput(options, true);
-
   }
 
   virtual ~CairoBibtexCloud(){}
@@ -65,6 +100,58 @@ public:
 
   virtual void say(const GuiOptionChooser*, VerbListener::Verb verb){
     std::cout<<verb<<std::endl;
+    if (verb.compare("Filter") == 0) {
+      std::set<std::string> marked;
+      ctc->getMarkedPlus(marked);
+      
+      //filter out all entries that do not have a tag in the marked set.
+      for (auto it = key_to_keywords.begin(); it != key_to_keywords.end(); ) {
+	bool erase = true;
+	
+	for (std::string ent : it->second) {
+	  if (std::find(marked.begin(), marked.end(), ent) != marked.end()) {
+	    erase = false;
+	    break;
+	  }
+	}
+
+	if (erase) {
+	  it = key_to_keywords.erase(it);
+	}
+	else {
+	  ++it;
+	}
+      }
+      
+      //update display
+      generate_count();
+      ctc->setTagCloud(count);
+
+      //printout list
+      for (auto ent : key_to_keywords) {
+	std::cout<<ent.first<<"=>"; 
+	for (std::string &s : ent.second)
+	  std::cout<<s<<"|";
+	std::cout<<std::endl;
+      }
+    }
+    if (verb.compare("ZoomIn") == 0) {
+      ctc->scaleUp();
+    }
+
+    if (verb.compare("ZoomOut") == 0) {
+      ctc->scaleDown();
+    }
+
+    if (verb.compare("Ignore") == 0) {
+      std::set<std::string> marked;
+      ctc->getMarkedPlus(marked);
+      ignore_list.insert (marked.begin(), marked.end());
+      
+      //update display
+      generate_count();
+      ctc->setTagCloud(count);
+    }
   }
 
   //==========Rendering stuff===========

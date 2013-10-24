@@ -2,6 +2,7 @@
 #define CAIRO_TAG_CLOUD
 
 #include "cairo_graphic_controller.hpp"
+#include <set>
 
 class CairoTagCloud : public CairoGraphicController {
   
@@ -9,7 +10,7 @@ class CairoTagCloud : public CairoGraphicController {
   
   //  float fontsize (int occurence) {return occurence;}
   //  float fontsize (int occurence) {return 3*sqrt((float)occurence)+5;}
-  float fontsize (int occurence) {return (float)occurence+5;}
+  float fontsize (int occurence) {return scale*(float)occurence+5;}
 
   struct placement {
     float x, y, w, h;
@@ -20,6 +21,8 @@ class CairoTagCloud : public CairoGraphicController {
       return ss.str();
     }
   };
+
+  float scale;
 
   std::map<std::string, placement > actual_placement;
 
@@ -50,6 +53,8 @@ class CairoTagCloud : public CairoGraphicController {
   }
 
   void compute_placement() {
+    bool verbose = false;
+
     if (!refresh_placement) return;
 
     std::cout<<"compute placement"<<std::endl;
@@ -71,6 +76,7 @@ class CairoTagCloud : public CairoGraphicController {
 	//compute tentative placement
 	p.h = fontsize(ent.second);
 	p.w = fontsize(ent.second)*ent.first.size();
+	if (p.w >= getSizeX() || p.h >= getSizeY()) {try_count = 50; break;}
 	p.x = rand() % (getSizeX()-(int) p.w);
 	p.y = p.h+ (rand() % ( getSizeY() - (int) p.y));
 
@@ -80,7 +86,8 @@ class CairoTagCloud : public CairoGraphicController {
 	  if (check_collision(p, pl))
 	    cont = true;
 	  if (cont) {
-	    std::cout<<"collide"<<p.tostring()<<" "<<pl.tostring()<<std::endl;
+	    if (verbose)
+	      std::cout<<"collide"<<p.tostring()<<" "<<pl.tostring()<<std::endl;
 	    break;
 	  }
 	}
@@ -109,8 +116,13 @@ public:
   }
   
 
+  void scaleUp() {scale*=1.2; refresh_placement = true;}
+  void scaleDown() {scale/=1.2; refresh_placement = true;}
+
   CairoTagCloud (  std::vector<std::pair<std::string, int > >& c ) {
     setTagCloud (c);
+
+    scale = 1.;
 
     bgcolor = cairo_pattern_create_rgb(1,1,1);
     fgcolor = cairo_pattern_create_rgb(0,0,0);
@@ -123,10 +135,16 @@ public:
     cairo_pattern_destroy(fgcolor_mp);
   }
 
+  void getMarkedPlus(std::set<std::string> & out) {
+    for (auto ent : marked_plus) {
+      if (ent.second)
+	out.insert (ent.first);
+    }
+  }
+
   virtual void setSizeX(int sx){if (sx != getSizeX()) refresh_placement = true; CairoGraphicController::setSizeX(sx);}
   virtual void setSizeY(int sy){if (sy != getSizeY()) refresh_placement = true; CairoGraphicController::setSizeY(sy); }
 
-  
   virtual void clickat(int x, int y) {
     for (auto ent : actual_placement) {
       if (within(ent.second, x, y)) {

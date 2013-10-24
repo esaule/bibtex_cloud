@@ -45,8 +45,6 @@ int main (int argc, char* argv[]) {
       s = str_tolower(s);
   }
 
-  
-
   //print
   for (auto it = key_to_keywords.begin(); it != key_to_keywords.end(); ++it) {
     std::cout<<it->first<<"=>"; 
@@ -55,27 +53,6 @@ int main (int argc, char* argv[]) {
     std::cout<<std::endl;
   }
 
-  //count occurences
-  std::map<std::string, int> count_m;
-  
-  for (auto it = key_to_keywords.begin(); it != key_to_keywords.end(); ++it) {
-    for (std::string s : it->second) {
-      count_m[s] ++;
-    }
-  }
-
-  std::vector<std::pair<std::string, int > > count;
-  //print occurences
-  for (auto it = count_m.begin(); it != count_m.end(); ++it) {
-    count.push_back(std::pair<std::string, int > (it->first, it->second));
-  }
-  
-  std::sort (count.begin(), count.end(), [] (const std::pair<std::string, int> & a, const std::pair<std::string, int> & b) -> bool {return a.second>b.second;} );
-
-  //print occurences
-  for (auto it = count.begin(); it != count.end(); ++it) {
-    std::cout<<it->first<<" "<<it->second<<std::endl;
-  }
 
 
 
@@ -98,7 +75,7 @@ int main (int argc, char* argv[]) {
   gtk_widget_add_events (window, GDK_POINTER_MOTION_MASK);
 
   //  CairoTagCloud g (count);
-  CairoBibtexCloud g (count);
+  CairoBibtexCloud g (key_to_keywords);
   
     imWind = gtk_label_new("You should not see this message!");
 
