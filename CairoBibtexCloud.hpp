@@ -33,6 +33,7 @@ private:
 
   util::smart_ptr<CairoTagCloud> ctc;
 
+  util::smart_ptr<GuiOptionChooser> options;
 public:
   //============ Constructors  =================
   CairoBibtexCloud(std::vector<std::pair<std::string, int > >& c) {
@@ -43,12 +44,27 @@ public:
     gl.sizeObject(ctc, 10, 50);
     gl.showObject(ctc, true);
     gl.allowInput(ctc, true);
+
+    options = new GuiOptionChooser(*this);
+    options->setOptionHeight(1);
+    options->setOptionWidth(.3);
+    options->setFontSize(.8);
+    options->addOption("filter");
+
+
+    gl.addObject(options);
+    gl.placeObject(options, 10, 10);
+    gl.sizeObject(options, 10, 40);
+    gl.showObject(options, true);
+    gl.allowInput(options, true);
+
   }
 
   virtual ~CairoBibtexCloud(){}
 
 
   virtual void say(const GuiOptionChooser*, VerbListener::Verb verb){
+    std::cout<<verb<<std::endl;
   }
 
   //==========Rendering stuff===========
@@ -60,12 +76,18 @@ public:
   {
     gl.placeObjectX(ctc, 10);
     gl.sizeObjectX(ctc, sx-10);
+
+    gl.placeObjectX(options, 10);
+    gl.sizeObjectX(options, sx-10);
   }
 
   virtual void setSizeY(int sy)
   {
     gl.placeObjectY(ctc, 50);
     gl.sizeObjectY(ctc, sy-50);
+
+    gl.placeObjectY(options, 10);
+    gl.sizeObjectY(options, 40);
   }
 
 
