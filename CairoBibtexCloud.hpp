@@ -99,7 +99,7 @@ public:
   virtual ~CairoBibtexCloud(){}
 
 
-  virtual void say(const GuiOptionChooser*, VerbListener::Verb verb){
+  virtual void say(const GuiOptionChooser*, VerbListener::Verb verb) {
     std::cout<<verb<<std::endl;
     if (verb.compare("Filter") == 0) {
       std::set<std::string> marked;
